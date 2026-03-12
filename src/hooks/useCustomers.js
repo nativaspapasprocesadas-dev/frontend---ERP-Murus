@@ -69,7 +69,7 @@ export const useCustomers = () => {
       const params = new URLSearchParams();
 
       if (filters.page) params.append('page', filters.page);
-      if (filters.pageSize) params.append('pageSize', filters.pageSize);
+      if (filters.pageSize !== undefined && filters.pageSize !== null) params.append('pageSize', filters.pageSize);
       if (filters.search) params.append('search', filters.search);
       if (filters.routeId) params.append('routeId', filters.routeId);
       if (filters.customerType) params.append('customerType', filters.customerType);
@@ -147,8 +147,8 @@ export const useCustomers = () => {
 
       const response = await apiClient.post('/customers', apiData);
 
-      // Recargar lista
-      await fetchCustomers();
+      // Recargar lista completa
+      await fetchCustomers({ pageSize: 0 });
 
       return {
         success: true,

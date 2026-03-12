@@ -8,6 +8,8 @@ import { PricingService } from '@services/PricingService'
 import { CustomersService } from '@services/CustomersService'
 import { clienteSchema, clienteInitialValues, validarCliente } from '@utils/schemas/clienteSchema'
 
+const TOAST_DISPLAY_MS = 1000
+
 /**
  * Componente de formulario para crear/editar cliente
  * ELM-027: FormularioNuevoCliente
@@ -93,7 +95,7 @@ const FormularioNuevoCliente = ({ cliente, onSuccess, onCancel, onError }) => {
   // El filtro visible_en_catalogo solo aplica para lo que ve el cliente en su catálogo,
   // pero al asignar precios personalizados, el admin debe ver TODOS los productos
   useEffect(() => {
-    fetchProducts({ includeHidden: true })
+    fetchProducts({ includeHidden: true, pageSize: 0 })
   }, [fetchProducts])
 
   // Inicializar precios cuando se cargan los productos (SOLO en modo creacion)
@@ -281,7 +283,7 @@ const FormularioNuevoCliente = ({ cliente, onSuccess, onCancel, onError }) => {
             onSuccess()
           } else {
             mostrarExito('Cliente actualizado exitosamente')
-            setTimeout(() => onSuccess(), 1000)
+            setTimeout(() => onSuccess(), TOAST_DISPLAY_MS)
           }
         } else {
           mostrarError(result.error || 'Error al actualizar el cliente')
@@ -310,7 +312,7 @@ const FormularioNuevoCliente = ({ cliente, onSuccess, onCancel, onError }) => {
             onSuccess()
           } else {
             mostrarExito(result.message || 'Cliente creado exitosamente')
-            setTimeout(() => onSuccess(), 1000)
+            setTimeout(() => onSuccess(), TOAST_DISPLAY_MS)
           }
         } else {
           mostrarError(result.error || 'Error al crear el cliente')
@@ -536,13 +538,17 @@ const FormularioNuevoCliente = ({ cliente, onSuccess, onCancel, onError }) => {
                 Ejemplo: Si se entregan pedidos con {formData.diasCredito} días de crédito
               </p>
               <div className="text-xs text-blue-700 space-y-1">
-                <p>Pedido entregado el <strong>13/01/2025</strong></p>
-                <p>Fecha de vencimiento: <strong>{(() => {
-                  const hoy = new Date('2025-01-13')
+                {(() => {
+                  const hoy = new Date()
                   const vencimiento = new Date(hoy)
                   vencimiento.setDate(hoy.getDate() + parseInt(formData.diasCredito))
-                  return vencimiento.toLocaleDateString('es-PE')
-                })()}</strong></p>
+                  return (
+                    <>
+                      <p>Pedido entregado el <strong>{hoy.toLocaleDateString('es-PE')}</strong></p>
+                      <p>Fecha de vencimiento: <strong>{vencimiento.toLocaleDateString('es-PE')}</strong></p>
+                    </>
+                  )
+                })()}
               </div>
             </div>
           )}

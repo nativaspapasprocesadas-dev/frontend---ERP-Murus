@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, Button, Table, Badge, Modal, Toast, SedeIndicator } from '@components/common'
 import { FormularioNuevoCliente } from '@components/Clientes'
@@ -29,13 +29,20 @@ const Clientes = () => {
   const [clienteAEliminar, setClienteAEliminar] = useState(null)
   const [deletingCliente, setDeletingCliente] = useState(false)
 
+  // Estado para búsqueda
+  const [searchInput, setSearchInput] = useState('')
+
+  // Estado para paginación client-side
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 20
+
   // Estado para notificaciones Toast
   const [toast, setToast] = useState(null)
 
   // Helper para recargar clientes con filtro de sede consistente
   const recargarClientes = () => {
     const branchId = canViewAllSedes() ? null : sedeIdActiva
-    fetchCustomers({ branchId })
+    fetchCustomers({ branchId, pageSize: 0 })
   }
 
   // Cargar clientes al montar el componente, filtrando por sede activa
@@ -43,6 +50,36 @@ const Clientes = () => {
   useEffect(() => {
     recargarClientes()
   }, [sedeIdActiva, canViewAllSedes])
+
+  // Filtrar clientes por búsqueda (client-side)
+  const clientesFiltrados = useMemo(() => {
+    if (!searchInput.trim()) return clientesExpandidos
+    const term = searchInput.toLowerCase().trim()
+    return clientesExpandidos.filter(c =>
+      c.nombre?.toLowerCase().includes(term) ||
+      c.email?.toLowerCase().includes(term) ||
+      c.telefono?.includes(term) ||
+      c.direccion?.toLowerCase().includes(term) ||
+      c.rutaNombre?.toLowerCase().includes(term) ||
+      c.nombreContacto?.toLowerCase().includes(term)
+    )
+  }, [clientesExpandidos, searchInput])
+
+  // Resetear a página 1 cuando cambia la búsqueda o los datos
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchInput, clientesExpandidos])
+
+  // Paginación client-side sobre datos filtrados
+  const totalPages = Math.ceil(clientesFiltrados.length / pageSize)
+  const clientesPaginados = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return clientesFiltrados.slice(start, start + pageSize)
+  }, [clientesFiltrados, currentPage, pageSize])
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page)
+  }
 
   // Usar configuración dinámica de rutas
   const RUTAS_LABELS = nombresPorNumero
@@ -275,7 +312,7 @@ const Clientes = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Clientes</p>
-              <p className="text-2xl font-bold text-gray-900">{clientesExpandidos.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{clientesFiltrados.length}</p>
             </div>
             <span className="text-3xl">👥</span>
           </div>
@@ -286,7 +323,7 @@ const Clientes = () => {
             <div>
               <p className="text-sm text-gray-600">Con Deuda Vencida</p>
               <p className="text-2xl font-bold text-red-600">
-                {clientesExpandidos.filter(c => c.tieneDeudaVencida).length}
+                {clientesFiltrados.filter(c => c.tieneDeudaVencida).length}
               </p>
             </div>
             <span className="text-3xl">⚠️</span>
@@ -296,7 +333,145 @@ const Clientes = () => {
       </div>
 
       <Card>
-        <Table columns={columns} data={clientesExpandidos} loading={loading} />
+        <div className="p-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-end gap-3">
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Buscar</label>
+              <input
+                type="text"
+                placeholder="Nombre, email, teléfono, dirección o contacto..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            {searchInput && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setSearchInput('')}
+                className="whitespace-nowrap"
+              >
+                Limpiar
+              </Button>
+            )}
+          </div>
+          {searchInput && (
+            <div className="mt-2 text-xs text-gray-500">
+              {clientesFiltrados.length} de {clientesExpandidos.length} cliente{clientesExpandidos.length !== 1 ? 's' : ''}
+            </div>
+          )}
+        </div>
+        <Table
+          columns={columns}
+          data={clientesPaginados}
+          loading={loading}
+          emptyMessage={searchInput ? "No hay clientes que coincidan con la búsqueda" : "No hay clientes registrados"}
+        />
+
+        {/* Controles de Paginación */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 border-t border-gray-200 gap-3">
+            <div className="text-sm text-gray-700">
+              Mostrando{' '}
+              <span className="font-medium">
+                {((currentPage - 1) * pageSize) + 1}
+              </span>
+              {' '}-{' '}
+              <span className="font-medium">
+                {Math.min(currentPage * pageSize, clientesFiltrados.length)}
+              </span>
+              {' '}de{' '}
+              <span className="font-medium">{clientesFiltrados.length}</span>
+              {' '}clientes
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => goToPage(1)}
+                disabled={currentPage === 1}
+                className={`px-2 py-1 text-sm rounded border ${
+                  currentPage === 1
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                }`}
+                title="Primera página"
+              >
+                &laquo;
+              </button>
+
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 text-sm rounded border ${
+                  currentPage === 1
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                }`}
+              >
+                Anterior
+              </button>
+
+              <div className="hidden sm:flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const startPage = Math.max(1, currentPage - 2)
+                  const pageNum = startPage + i
+                  if (pageNum > totalPages) return null
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => goToPage(pageNum)}
+                      className={`px-3 py-1 text-sm rounded border ${
+                        pageNum === currentPage
+                          ? 'bg-primary-600 text-white border-primary-600'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <span className="sm:hidden px-2 text-sm text-gray-600">
+                {currentPage} / {totalPages}
+              </span>
+
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 text-sm rounded border ${
+                  currentPage === totalPages
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                }`}
+              >
+                Siguiente
+              </button>
+
+              <button
+                onClick={() => goToPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className={`px-2 py-1 text-sm rounded border ${
+                  currentPage === totalPages
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                }`}
+                title="Última página"
+              >
+                &raquo;
+              </button>
+            </div>
+          </div>
+        )}
+
+        {clientesFiltrados.length > 0 && totalPages === 1 && (
+          <div className="px-4 py-3 border-t border-gray-200">
+            <p className="text-sm text-gray-600">
+              Mostrando {clientesFiltrados.length} cliente{clientesFiltrados.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+        )}
       </Card>
 
       {/* Modal Detalle */}

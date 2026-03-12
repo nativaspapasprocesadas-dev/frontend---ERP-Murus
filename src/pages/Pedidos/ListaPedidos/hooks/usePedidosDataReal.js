@@ -15,6 +15,8 @@ export const usePedidosDataReal = ({ user, isRole, filtroEstado }) => {
   const [pedidos, setPedidos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 20
 
   // Obtener sedeIdActiva del store global para filtrar por sede
   const { sedeIdActiva, isSuperAdmin } = useAuthStore()
@@ -25,7 +27,7 @@ export const usePedidosDataReal = ({ user, isRole, filtroEstado }) => {
       setLoading(true)
       setError(null)
 
-      const filters = {}
+      const filters = { pageSize: 0 }
 
       // Si hay filtro de estado, aplicarlo
       if (filtroEstado) {
@@ -54,13 +56,42 @@ export const usePedidosDataReal = ({ user, isRole, filtroEstado }) => {
     loadPedidos()
   }, [loadPedidos])
 
-  // Filtrar pedidos según rol del usuario
-  // NOTA: El backend ya filtra por customer_id cuando el rol es CLIENTE (ordersModel.js linea 27-29)
-  // No es necesario filtrar nuevamente en frontend
-  const pedidosFiltrados = useMemo(() => {
-    // Ordenar por fecha descendente (createdAt viene de la API)
+  // Ordenar pedidos por fecha descendente
+  const pedidosOrdenados = useMemo(() => {
     return [...pedidos].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   }, [pedidos])
+
+  // Resetear a página 1 cuando cambian los datos o filtros
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [pedidos, filtroEstado])
+
+  // Paginación client-side
+  const totalPages = Math.ceil(pedidosOrdenados.length / pageSize)
+
+  const pedidosFiltrados = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return pedidosOrdenados.slice(start, start + pageSize)
+  }, [pedidosOrdenados, currentPage, pageSize])
+
+  const pagination = useMemo(() => ({
+    page: currentPage,
+    pageSize,
+    total: pedidosOrdenados.length,
+    totalPages
+  }), [currentPage, pageSize, pedidosOrdenados.length, totalPages])
+
+  const goToPage = useCallback((page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page)
+  }, [totalPages])
+
+  const nextPage = useCallback(() => {
+    if (currentPage < totalPages) setCurrentPage(prev => prev + 1)
+  }, [currentPage, totalPages])
+
+  const prevPage = useCallback(() => {
+    if (currentPage > 1) setCurrentPage(prev => prev - 1)
+  }, [currentPage])
 
   // Actualizar pedido (para acciones como editar, asignar ruta, etc)
   const updatePedido = useCallback(async (pedidoId, cambios) => {
@@ -111,6 +142,11 @@ export const usePedidosDataReal = ({ user, isRole, filtroEstado }) => {
     cancelPedido,
     refresh: loadPedidos,
     // Alias para compatibilidad con hooks de modales
-    refreshPedidos: loadPedidos
+    refreshPedidos: loadPedidos,
+    // Paginación
+    pagination,
+    goToPage,
+    nextPage,
+    prevPage
   }
 }

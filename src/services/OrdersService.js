@@ -196,7 +196,7 @@ export const listOrders = async (filters = {}) => {
 
     const queryParams = new URLSearchParams();
     if (filters.page) queryParams.append('page', filters.page);
-    if (filters.pageSize) queryParams.append('pageSize', filters.pageSize);
+    if (filters.pageSize !== undefined && filters.pageSize !== null) queryParams.append('pageSize', filters.pageSize);
     if (filters.status) queryParams.append('status', filters.status);
     if (filters.customerId) queryParams.append('customerId', filters.customerId);
     if (filters.branchId) queryParams.append('branchId', filters.branchId);

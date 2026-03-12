@@ -89,7 +89,7 @@ export const useOrderDetail = (orderId) => {
             medida: { nombre: item.medidaNombre || 'N/A' },
             kilosPorBolsa: item.kilosPorBolsa || 0,
             totalKilos: item.totalKilos || 0,
-            precioKg: item.precioUnitario || 0
+            precioKg: (item.kilosPorBolsa > 0) ? (item.precioUnitario / item.kilosPorBolsa) : item.precioUnitario
           })),
 
           // Adiciones - NO disponibles en backend actual

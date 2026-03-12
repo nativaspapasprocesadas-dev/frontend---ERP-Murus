@@ -78,7 +78,7 @@ export const useProducts = () => {
       if (filters.speciesId) params.append('speciesId', filters.speciesId);
       if (filters.measureId) params.append('measureId', filters.measureId);
       if (filters.page) params.append('page', filters.page);
-      if (filters.pageSize) params.append('pageSize', filters.pageSize);
+      if (filters.pageSize !== undefined) params.append('pageSize', filters.pageSize);
       // Parámetro para incluir productos no visibles en catálogo (solo admin)
       if (filters.includeHidden) params.append('includeHidden', 'true');
 

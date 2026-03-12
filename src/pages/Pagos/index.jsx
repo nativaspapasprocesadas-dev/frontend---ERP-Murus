@@ -19,9 +19,9 @@ const Pagos = () => {
   const { data: clientes, loading: loadingClientes, fetchCustomers } = useCustomers()
   const { data: pagos, create, loading: loadingPagos } = usePayments()
 
-  // Cargar clientes al montar el componente
+  // Cargar todos los clientes al montar el componente
   useEffect(() => {
-    fetchCustomers()
+    fetchCustomers({ pageSize: 0 })
   }, [])
   const toast = useToast()
 
@@ -128,7 +128,7 @@ const Pagos = () => {
       toast.success(`Pago registrado exitosamente. Nuevo saldo: ${formatearMoneda(result.newBalance || 0)}`)
 
       // Actualizar lista de clientes para reflejar el nuevo saldo
-      await fetchCustomers()
+      await fetchCustomers({ pageSize: 0 })
 
       // Limpiar formulario
       setFormData({
