@@ -139,6 +139,7 @@ export const usePedidoCreation = ({
         isPrepaid: paymentForm.pagadoAnticipado || false,
         estimatedDeliveryDate: fechaEntrega,
         assignRoute: deliveryForm.debeAsignarRuta(), // Solo asignar ruta si es "Delivery Propio" o "Agendar para mañana"
+        tipoDespacho: deliveryForm.getTipoDespacho(), // Tipo de despacho: RUTA, TAXI, RECOJO, OTRO
         items: items
       }
 

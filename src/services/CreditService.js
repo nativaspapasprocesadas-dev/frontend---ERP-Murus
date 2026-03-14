@@ -23,6 +23,7 @@ export class CreditService {
       if (params.pageSize) queryParams.append('pageSize', params.pageSize)
       if (params.branchId) queryParams.append('branchId', params.branchId)
       if (params.hasOverdue !== undefined) queryParams.append('hasOverdue', params.hasOverdue)
+      if (params.search) queryParams.append('search', params.search)
 
       const response = await api.get(`/credits/debtors?${queryParams.toString()}`)
       return response.data

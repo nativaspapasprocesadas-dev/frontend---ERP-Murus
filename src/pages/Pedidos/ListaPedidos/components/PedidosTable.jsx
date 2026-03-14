@@ -107,6 +107,18 @@ const PedidosTable = ({
       }
     },
     {
+      title: 'Despacho',
+      key: 'tipoDespacho',
+      render: (value) => {
+        const esRuta = !value || value === 'RUTA'
+        return (
+          <Badge variant={esRuta ? 'info' : 'warning'}>
+            {esRuta ? '🚚 En Ruta' : '📋 Sin Ruta'}
+          </Badge>
+        )
+      }
+    },
+    {
       title: 'Estado',
       key: 'estado',
       render: (value) => {

@@ -9,6 +9,7 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { getLocalDate, dateToLocalString } from '@utils/dateUtils'
 
 /**
  * Vista de Reporte por Rutas (Despacho)
@@ -52,23 +53,34 @@ const ReporteRutas = () => {
     cargarRutasConfig()
   }, [])
 
+  // Validar que una fecha string sea completa y válida (yyyy-MM-dd con año >= 2000)
+  const esFechaValida = (dateStr) => {
+    if (!dateStr || dateStr.length !== 10) return false
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (!match) return false
+    const year = parseInt(match[1], 10)
+    return year >= 2000 && year <= 2100
+  }
+
   // Obtener rango de fechas segun filtro
+  // IMPORTANTE: Usa getLocalDate() y dateToLocalString() para consistencia de timezone
   const getRangoFechas = () => {
     const hoy = new Date()
     switch (filtroFecha) {
       case 'hoy':
-        return { inicio: format(hoy, 'yyyy-MM-dd'), fin: format(hoy, 'yyyy-MM-dd') }
+        return { inicio: getLocalDate(), fin: getLocalDate() }
       case 'esta_semana':
         return {
-          inicio: format(startOfWeek(hoy, { weekStartsOn: 1 }), 'yyyy-MM-dd'),
-          fin: format(endOfWeek(hoy, { weekStartsOn: 1 }), 'yyyy-MM-dd')
+          inicio: dateToLocalString(startOfWeek(hoy, { weekStartsOn: 1 })),
+          fin: dateToLocalString(endOfWeek(hoy, { weekStartsOn: 1 }))
         }
       case 'este_mes':
         return {
-          inicio: format(startOfMonth(hoy), 'yyyy-MM-dd'),
-          fin: format(endOfMonth(hoy), 'yyyy-MM-dd')
+          inicio: dateToLocalString(startOfMonth(hoy)),
+          fin: dateToLocalString(endOfMonth(hoy))
         }
       case 'personalizado':
+        if (!esFechaValida(fechaInicio) || !esFechaValida(fechaFin)) return { inicio: '', fin: '' }
         return { inicio: fechaInicio, fin: fechaFin }
       default:
         return { inicio: '', fin: '' }

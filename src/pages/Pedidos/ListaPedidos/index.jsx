@@ -53,6 +53,7 @@ const ListaPedidos = () => {
 
   // Estado de filtros (filtro por sede se maneja globalmente via SedeSelector)
   const [filtroEstado, setFiltroEstado] = useState('')
+  const [busqueda, setBusqueda] = useState('')
   const [modalPedidoAdicional, setModalPedidoAdicional] = useState(false)
 
   // Estado para configuración de empresa
@@ -86,7 +87,7 @@ const ListaPedidos = () => {
     nextPage,
     prevPage
   } = usePedidosData({
-    user, isRole, filtroEstado
+    user, isRole, filtroEstado, busqueda
   })
 
   const { stats } = usePedidosStats({})
@@ -143,8 +144,10 @@ const ListaPedidos = () => {
 
       <PedidosFiltros
         filtroEstado={filtroEstado}
+        busqueda={busqueda}
         onFiltroChange={setFiltroEstado}
-        onLimpiar={() => setFiltroEstado('')}
+        onBusquedaChange={setBusqueda}
+        onLimpiar={() => { setFiltroEstado(''); setBusqueda('') }}
       />
 
       <PedidosTable

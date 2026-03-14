@@ -140,6 +140,38 @@ export const METODOS_ENTREGA_LABELS = {
 }
 
 // ============================================
+// TIPOS DE DESPACHO (campo tipo_despacho en pedidos)
+// Valores alineados con backend: RUTA, TAXI, RECOJO, OTRO
+// ============================================
+export const TIPOS_DESPACHO = {
+  RUTA: 'RUTA',
+  TAXI: 'TAXI',
+  RECOJO: 'RECOJO',
+  OTRO: 'OTRO'
+}
+
+export const TIPOS_DESPACHO_LABELS = {
+  [TIPOS_DESPACHO.RUTA]: 'Ruta Propia',
+  [TIPOS_DESPACHO.TAXI]: 'Taxi/Externo',
+  [TIPOS_DESPACHO.RECOJO]: 'Recojo en Planta',
+  [TIPOS_DESPACHO.OTRO]: 'Otro'
+}
+
+export const TIPOS_DESPACHO_COLORS = {
+  [TIPOS_DESPACHO.RUTA]: 'info',
+  [TIPOS_DESPACHO.TAXI]: 'warning',
+  [TIPOS_DESPACHO.RECOJO]: 'success',
+  [TIPOS_DESPACHO.OTRO]: 'default'
+}
+
+export const TIPOS_DESPACHO_ICONS = {
+  [TIPOS_DESPACHO.RUTA]: '🚚',
+  [TIPOS_DESPACHO.TAXI]: '🚕',
+  [TIPOS_DESPACHO.RECOJO]: '🏪',
+  [TIPOS_DESPACHO.OTRO]: '📦'
+}
+
+// ============================================
 // TIPOS DE PAGO
 // ============================================
 export const TIPOS_PAGO = {

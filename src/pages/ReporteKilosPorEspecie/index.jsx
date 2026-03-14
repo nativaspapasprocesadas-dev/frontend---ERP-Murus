@@ -75,6 +75,15 @@ const ReporteKilosPorEspecie = () => {
     cargarDatos()
   }, [filtroFecha, fechaInicio, fechaFin, sedeIdActiva])
 
+  // Validar que una fecha string sea completa y válida (yyyy-MM-dd con año >= 2000)
+  const esFechaValida = (dateStr) => {
+    if (!dateStr || dateStr.length !== 10) return false
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (!match) return false
+    const year = parseInt(match[1], 10)
+    return year >= 2000 && year <= 2100
+  }
+
   // Obtener rango de fechas según filtro
   // IMPORTANTE: Usa getLocalDate() y dateToLocalString() para consistencia de timezone
   const getRangoFechas = () => {
@@ -99,6 +108,7 @@ const ReporteKilosPorEspecie = () => {
           fin: dateToLocalString(endOfMonth(hoy))
         }
       case 'personalizado':
+        if (!esFechaValida(fechaInicio) || !esFechaValida(fechaFin)) return { inicio: '', fin: '' }
         return {
           inicio: fechaInicio,
           fin: fechaFin

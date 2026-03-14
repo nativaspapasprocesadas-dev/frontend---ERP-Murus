@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Button, Select } from '@components/common'
+import { Card, Button, Input, Select } from '@components/common'
 import { ESTADOS_PEDIDO, ESTADOS_PEDIDO_LABELS } from '@utils/constants'
 
 /**
@@ -10,7 +10,9 @@ import { ESTADOS_PEDIDO, ESTADOS_PEDIDO_LABELS } from '@utils/constants'
  */
 const PedidosFiltros = ({
   filtroEstado,
+  busqueda,
   onFiltroChange,
+  onBusquedaChange,
   onLimpiar
 }) => {
   const estadosOptions = Object.keys(ESTADOS_PEDIDO).map(key => ({
@@ -18,11 +20,19 @@ const PedidosFiltros = ({
     label: ESTADOS_PEDIDO_LABELS[ESTADOS_PEDIDO[key]]
   }))
 
-  const hayFiltrosActivos = !!filtroEstado
+  const hayFiltrosActivos = !!filtroEstado || !!busqueda
 
   return (
     <Card>
       <div className="flex gap-4 items-center flex-wrap">
+        <Input
+          label="Buscar por Cliente"
+          value={busqueda}
+          onChange={(e) => onBusquedaChange(e.target.value)}
+          placeholder="Nombre del cliente..."
+          className="w-64"
+        />
+
         <Select
           label="Filtrar por Estado"
           value={filtroEstado}

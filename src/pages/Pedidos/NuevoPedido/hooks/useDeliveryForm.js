@@ -73,6 +73,19 @@ export const useDeliveryForm = ({ rutaYaSalio = false } = {}) => {
     return metodoEntrega === 'delivery' || metodoEntrega === 'agendar_manana'
   }
 
+  // Obtener tipo de despacho para persistir en backend
+  // Mapea el método de entrega interno al enum del backend: RUTA, TAXI, RECOJO, OTRO
+  const getTipoDespacho = () => {
+    const despachoMap = {
+      'delivery': 'RUTA',
+      'agendar_manana': 'RUTA',
+      'taxi': 'TAXI',
+      'recojo': 'RECOJO',
+      'otro': 'OTRO'
+    }
+    return despachoMap[metodoEntrega] || 'RUTA'
+  }
+
   // Obtener fecha de entrega basada en método seleccionado
   // Si es 'agendar_manana' → fecha de mañana
   // En cualquier otro caso → fecha de hoy
@@ -115,6 +128,7 @@ export const useDeliveryForm = ({ rutaYaSalio = false } = {}) => {
     isMetodoEntregaValido,
     debeAsignarRuta,
     getFechaEntrega,
-    esPedidoAgendado
+    esPedidoAgendado,
+    getTipoDespacho
   }
 }

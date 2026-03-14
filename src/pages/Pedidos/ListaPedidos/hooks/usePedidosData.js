@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { listOrders, cancelOrder as cancelOrderAPI, updateOrder as updateOrderAPI } from '@/services/OrdersService'
 import { ROLES } from '@utils/constants'
 
@@ -7,7 +7,7 @@ import { ROLES } from '@utils/constants'
  * INTEGRACION REAL: Consume API-006 GET /api/v1/orders
  * ELIMINADO: useMockPedidos
  */
-export const usePedidosData = ({ user, isRole, filtroEstado, filtroSede }) => {
+export const usePedidosData = ({ user, isRole, filtroEstado, filtroSede, busqueda }) => {
   const [pedidosExpandidos, setPedidosExpandidos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -20,6 +20,23 @@ export const usePedidosData = ({ user, isRole, filtroEstado, filtroSede }) => {
     totalPages: 0
   })
 
+  // Debounce para búsqueda por texto
+  const [busquedaDebounced, setBusquedaDebounced] = useState(busqueda || '')
+  const debounceRef = useRef(null)
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setBusquedaDebounced(busqueda || '')
+    }, 400)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [busqueda])
+
+  // Resetear a página 1 cuando cambia la búsqueda
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, page: 1 }))
+  }, [busquedaDebounced])
+
   // Fetch inicial de pedidos
   useEffect(() => {
     const fetchPedidos = async () => {
@@ -31,6 +48,7 @@ export const usePedidosData = ({ user, isRole, filtroEstado, filtroSede }) => {
         const filters = {
           status: filtroEstado || undefined,
           branchId: filtroSede || undefined,
+          search: busquedaDebounced || undefined,
           page: pagination.page,
           pageSize: pagination.pageSize
         }
@@ -57,7 +75,7 @@ export const usePedidosData = ({ user, isRole, filtroEstado, filtroSede }) => {
     }
 
     fetchPedidos()
-  }, [filtroEstado, filtroSede, pagination.page, pagination.pageSize])
+  }, [filtroEstado, filtroSede, busquedaDebounced, pagination.page, pagination.pageSize])
 
   // Filtrado local (el backend ya filtra por cliente si aplica)
   const pedidosFiltrados = useMemo(() => {
@@ -75,6 +93,7 @@ export const usePedidosData = ({ user, isRole, filtroEstado, filtroSede }) => {
       const filters = {
         status: filtroEstado || undefined,
         branchId: filtroSede || undefined,
+        search: busqueda || undefined,
         page: 1, // Siempre volver a la primera página al refrescar
         pageSize: pagination.pageSize
       }

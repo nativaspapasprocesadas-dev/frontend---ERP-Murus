@@ -64,6 +64,7 @@ export const getOrderById = async (orderId) => {
       fecha: data.createdAt,
       estado: data.status,
       tipoPedido: data.tipoPedido || 'normal',
+      tipoDespacho: data.tipoDespacho || 'RUTA',
       tipoPago: data.tipoPago || (data.tipoPedido === 'adicional' ? 'credito' : 'contado'),
       total: data.total,
       subtotal: data.subtotal,
@@ -150,6 +151,7 @@ export const createOrder = async (orderData) => {
       isPrepaid: orderData.isPrepaid || false,
       orderType: orderData.orderType || 'NORMAL', // ELM-032: tipo_pedido
       assignRoute: orderData.assignRoute || false, // Solo asignar ruta si es Delivery Propio
+      tipoDespacho: orderData.tipoDespacho || 'RUTA', // Tipo de despacho: RUTA, TAXI, RECOJO, OTRO
       items: orderData.items.map(item => ({
         productId: item.productId,
         quantity: item.quantity,
@@ -202,6 +204,7 @@ export const listOrders = async (filters = {}) => {
     if (filters.branchId) queryParams.append('branchId', filters.branchId);
     if (filters.dateFrom) queryParams.append('dateFrom', filters.dateFrom);
     if (filters.dateTo) queryParams.append('dateTo', filters.dateTo);
+    if (filters.search) queryParams.append('search', filters.search);
 
     const response = await fetch(`${API_BASE_URL}/orders?${queryParams.toString()}`, {
       method: 'GET',
@@ -251,6 +254,7 @@ export const listOrders = async (filters = {}) => {
           estado: order.status,
           tipoPedido: order.tipoPedido || 'normal',
           tipoPago: tipoPagoFinal.toUpperCase(),
+          tipoDespacho: order.tipoDespacho || 'RUTA',
           total: order.total,
           subtotal: order.subtotal,
           customerId: order.customerId,
@@ -330,7 +334,11 @@ export const getOrdersStats = async (filters = {}) => {
       pendientes: data.pendientes || 0,
       enProceso: data.enProceso || 0,
       completados: data.completados || 0,
-      cancelados: data.cancelados || 0
+      cancelados: data.cancelados || 0,
+      despachoRuta: data.despachoRuta || 0,
+      despachoTaxi: data.despachoTaxi || 0,
+      despachoRecojo: data.despachoRecojo || 0,
+      despachoOtro: data.despachoOtro || 0
     };
 
   } catch (error) {

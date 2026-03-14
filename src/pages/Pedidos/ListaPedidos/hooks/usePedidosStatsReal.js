@@ -16,7 +16,11 @@ export const usePedidosStatsReal = (filters = {}) => {
     pendientes: 0,
     enProceso: 0,
     completados: 0,
-    cancelados: 0
+    cancelados: 0,
+    despachoRuta: 0,
+    despachoTaxi: 0,
+    despachoRecojo: 0,
+    despachoOtro: 0
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -49,7 +53,11 @@ export const usePedidosStatsReal = (filters = {}) => {
           pendientes: 0,
           enProceso: 0,
           completados: 0,
-          cancelados: 0
+          cancelados: 0,
+          despachoRuta: 0,
+          despachoTaxi: 0,
+          despachoRecojo: 0,
+          despachoOtro: 0
         })
       } finally {
         setLoading(false)

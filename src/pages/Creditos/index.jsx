@@ -31,6 +31,15 @@ const Creditos = () => {
   const [cargandoDeudores, setCargandoDeudores] = useState(false)
   const [cargandoEstadoCuenta, setCargandoEstadoCuenta] = useState(false)
 
+  // Paginación y búsqueda para lista de deudores
+  const [paginaActual, setPaginaActual] = useState(1)
+  const [totalPaginas, setTotalPaginas] = useState(1)
+  const [totalResultados, setTotalResultados] = useState(0)
+  const [busqueda, setBusqueda] = useState('')
+  const [busquedaActiva, setBusquedaActiva] = useState('')
+  const [summaryGlobal, setSummaryGlobal] = useState({ totalDeudores: 0, totalDebt: 0, totalConVencidos: 0 })
+  const PAGE_SIZE = 20
+
   // Estado para cliente seleccionado en vista admin
   const [clienteSeleccionadoId, setClienteSeleccionadoId] = useState(null)
 
@@ -86,7 +95,12 @@ const Creditos = () => {
       try {
         setCargandoDeudores(true)
         const branchId = canViewAllSedes() ? null : sedeIdActiva
-        const result = await CreditService.getDebtors({ branchId })
+        const result = await CreditService.getDebtors({
+          branchId,
+          page: paginaActual,
+          pageSize: PAGE_SIZE,
+          search: busquedaActiva || undefined
+        })
 
         // Mapear respuesta de API al formato esperado por la UI
         const clientesMapeados = (result.data || []).map(cliente => ({
@@ -103,6 +117,11 @@ const Creditos = () => {
         }))
 
         setClientesConDeuda(clientesMapeados)
+        setTotalPaginas(result.pagination?.totalPages || 1)
+        setTotalResultados(result.pagination?.total || 0)
+        if (result.summary) {
+          setSummaryGlobal(result.summary)
+        }
       } catch (error) {
         console.error('Error cargando clientes con deuda:', error)
         showToast(error.message || 'Error al cargar clientes con deuda', 'error')
@@ -112,7 +131,7 @@ const Creditos = () => {
     }
 
     cargarClientesConDeuda()
-  }, [isRole, sedeIdActiva, canViewAllSedes])
+  }, [isRole, sedeIdActiva, canViewAllSedes, paginaActual, busquedaActiva])
 
   // INTEGRADO: Cargar estado de cuenta del cliente (para rol CLIENTE) usando API-021
   useEffect(() => {
@@ -182,14 +201,14 @@ const Creditos = () => {
     cargarEstadoCuentaSeleccionado()
   }, [clienteSeleccionadoId])
 
-  // Calcular estadísticas desde los datos reales
+  // Estadísticas globales desde el backend (no dependen de paginación)
   const estadisticas = useMemo(() => {
     return {
-      totalConDeuda: clientesConDeuda.length,
-      totalConDeudaVencida: clientesConDeuda.filter(c => c.tieneCargosVencidos).length,
-      montoTotalPendiente: clientesConDeuda.reduce((sum, c) => sum + c.saldoActual, 0)
+      totalConDeuda: summaryGlobal.totalDeudores,
+      totalConDeudaVencida: summaryGlobal.totalConVencidos,
+      montoTotalPendiente: summaryGlobal.totalDebt
     }
-  }, [clientesConDeuda])
+  }, [summaryGlobal])
 
   // Función para renderizar el estado de cuenta (reutilizable)
   const renderEstadoCuenta = (estadoCuenta, esAdmin = false) => {
@@ -673,11 +692,62 @@ const Creditos = () => {
 
       {/* Lista de clientes con deuda */}
       <Card>
-        <h3 className="text-lg font-semibold mb-4">Clientes con Deuda</h3>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <h3 className="text-lg font-semibold">Clientes con Deuda</h3>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              setPaginaActual(1)
+              setBusquedaActiva(busqueda)
+            }}
+            className="flex gap-2 w-full sm:w-auto"
+          >
+            <div className="relative flex-1 sm:w-72">
+              <input
+                type="text"
+                placeholder="Buscar por nombre de cliente..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <Button type="submit" variant="primary" size="sm">Buscar</Button>
+            {busquedaActiva && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setBusqueda('')
+                  setBusquedaActiva('')
+                  setPaginaActual(1)
+                }}
+              >
+                Limpiar
+              </Button>
+            )}
+          </form>
+        </div>
 
-        {clientesConDeuda.length === 0 ? (
+        {busquedaActiva && (
+          <p className="text-sm text-gray-500 mb-3">
+            Mostrando resultados para "<span className="font-medium">{busquedaActiva}</span>" — {totalResultados} encontrado(s)
+          </p>
+        )}
+
+        {cargandoDeudores ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mx-auto mb-3"></div>
+              <p className="text-gray-500 text-sm">Cargando clientes...</p>
+            </div>
+          </div>
+        ) : clientesConDeuda.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <p>No hay clientes con deuda pendiente</p>
+            <p>{busquedaActiva ? 'No se encontraron clientes con ese nombre' : 'No hay clientes con deuda pendiente'}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -730,6 +800,58 @@ const Creditos = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Paginación */}
+        {totalPaginas > 1 && (
+          <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-600">
+              Página {paginaActual} de {totalPaginas} ({totalResultados} clientes)
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={paginaActual <= 1}
+                onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+              >
+                Anterior
+              </Button>
+              {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                let page
+                if (totalPaginas <= 5) {
+                  page = i + 1
+                } else if (paginaActual <= 3) {
+                  page = i + 1
+                } else if (paginaActual >= totalPaginas - 2) {
+                  page = totalPaginas - 4 + i
+                } else {
+                  page = paginaActual - 2 + i
+                }
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setPaginaActual(page)}
+                    className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                      page === paginaActual
+                        ? 'bg-primary-600 text-white font-semibold'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              })}
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={paginaActual >= totalPaginas}
+                onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+              >
+                Siguiente
+              </Button>
+            </div>
           </div>
         )}
       </Card>
