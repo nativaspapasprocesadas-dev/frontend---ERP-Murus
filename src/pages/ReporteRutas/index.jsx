@@ -81,6 +81,12 @@ const ReporteRutas = () => {
         }
       case 'personalizado':
         if (!esFechaValida(fechaInicio) || !esFechaValida(fechaFin)) return { inicio: '', fin: '' }
+        if (fechaInicio > fechaFin) return { inicio: '', fin: '', error: 'La fecha de inicio debe ser menor o igual a la fecha fin' }
+        {
+          const diffMs = new Date(fechaFin) - new Date(fechaInicio)
+          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+          if (diffDays > 365) return { inicio: '', fin: '', error: 'El rango máximo es de 365 días' }
+        }
         return { inicio: fechaInicio, fin: fechaFin }
       default:
         return { inicio: '', fin: '' }
@@ -91,7 +97,13 @@ const ReporteRutas = () => {
   useEffect(() => {
     const cargarDatos = async () => {
       const rango = getRangoFechas()
-      if (!rango.inicio) return
+      if (!rango.inicio) {
+        if (rango.error) {
+          setError(rango.error)
+          setRutasExpandidas([])
+        }
+        return
+      }
 
       try {
         setLoading(true)
@@ -133,7 +145,9 @@ const ReporteRutas = () => {
         }
       } catch (err) {
         console.error('Error cargando reporte de rutas:', err)
-        setError(err.message || 'Error al cargar datos')
+        const backendMsg = err.response?.data?.error
+        setError(backendMsg || err.message || 'Error al cargar datos')
+        setRutasExpandidas([])
       } finally {
         setLoading(false)
       }

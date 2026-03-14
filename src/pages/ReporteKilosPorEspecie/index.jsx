@@ -34,7 +34,13 @@ const ReporteKilosPorEspecie = () => {
   useEffect(() => {
     const cargarDatos = async () => {
       const rango = getRangoFechas()
-      if (!rango.inicio || !rango.fin) return
+      if (!rango.inicio || !rango.fin) {
+        if (rango.error) {
+          setError(rango.error)
+          setDatosAPI({ totalKilos: 0, totalOrders: 0, bySpecies: [], byDate: [] })
+        }
+        return
+      }
 
       try {
         setLoading(true)
@@ -66,7 +72,9 @@ const ReporteKilosPorEspecie = () => {
         }
       } catch (err) {
         console.error('Error cargando reporte de kilos por especie:', err)
-        setError(err.message || 'Error al cargar datos')
+        const backendMsg = err.response?.data?.error
+        setError(backendMsg || err.message || 'Error al cargar datos')
+        setDatosAPI({ totalKilos: 0, totalOrders: 0, bySpecies: [], byDate: [] })
       } finally {
         setLoading(false)
       }
@@ -109,6 +117,12 @@ const ReporteKilosPorEspecie = () => {
         }
       case 'personalizado':
         if (!esFechaValida(fechaInicio) || !esFechaValida(fechaFin)) return { inicio: '', fin: '' }
+        if (fechaInicio > fechaFin) return { inicio: '', fin: '', error: 'La fecha de inicio debe ser menor o igual a la fecha fin' }
+        {
+          const diffMs = new Date(fechaFin) - new Date(fechaInicio)
+          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+          if (diffDays > 365) return { inicio: '', fin: '', error: 'El rango máximo es de 365 días' }
+        }
         return {
           inicio: fechaInicio,
           fin: fechaFin
