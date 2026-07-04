@@ -34,6 +34,44 @@ export class CreditService {
   }
 
   /**
+   * Exportar a Excel los créditos de los clientes con deuda y su detalle
+   * GET /api/v1/credits/debtors/export
+   * Descarga un archivo .xlsx
+   */
+  static async exportDebtors(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      if (params.branchId) queryParams.append('branchId', params.branchId)
+      if (params.search) queryParams.append('search', params.search)
+
+      const response = await api.get(`/credits/debtors/export?${queryParams.toString()}`, {
+        responseType: 'blob',
+        timeout: 60000 // exportación puede tardar más que el default
+      })
+
+      // Extraer nombre de archivo del header Content-Disposition si está disponible
+      const disposition = response.headers['content-disposition'] || ''
+      const match = disposition.match(/filename="?([^"]+)"?/)
+      const filename = match ? match[1] : 'creditos_clientes.xlsx'
+
+      // Disparar descarga en el navegador
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+
+      return { success: true, filename }
+    } catch (error) {
+      console.error('Error exportando créditos:', error)
+      throw new Error('Error al exportar los créditos a Excel')
+    }
+  }
+
+  /**
    * API-023: Obtener cuenta de cliente específico
    * GET /api/v1/credits/customers/{customerId}
    */

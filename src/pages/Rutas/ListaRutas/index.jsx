@@ -174,6 +174,7 @@ const ListaRutas = () => {
         colores={coloresPorNumero}
         labels={nombresPorNumero}
         onToggleMonto={modalExportacion.toggleMostrarMonto}
+        onSetTodosMonto={modalExportacion.setTodosMonto}
         onExportarRepartidor={modalExportacion.exportarRepartidor}
         onExportarCompleto={modalExportacion.exportarCompleto}
         onImprimirTicket={handleImprimirTicket}

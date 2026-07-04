@@ -53,7 +53,7 @@ export const useMeasures = () => {
       const measures = response.data.data || [];
       setData(measures.map(mapFromAPI));
     } catch (err) {
-      const errorMessage = err.response?.data?.error || err.message || 'Error al cargar medidas';
+      const errorMessage = err.response?.data?.error || err.message || 'Error al cargar tipos de corte';
       setError(errorMessage);
       console.error('Error en fetchMeasures:', err);
     } finally {
@@ -84,7 +84,7 @@ export const useMeasures = () => {
 
       return { success: true, data: newMeasure };
     } catch (err) {
-      const errorMessage = err.response?.data?.error || err.message || 'Error al crear medida';
+      const errorMessage = err.response?.data?.error || err.message || 'Error al crear tipo de corte';
       setError(errorMessage);
       console.error('Error en create measure:', err);
       return { success: false, error: errorMessage };
@@ -113,7 +113,7 @@ export const useMeasures = () => {
 
       return { success: true, data: updatedMeasure };
     } catch (err) {
-      const errorMessage = err.response?.data?.error || err.message || 'Error al actualizar medida';
+      const errorMessage = err.response?.data?.error || err.message || 'Error al actualizar tipo de corte';
       setError(errorMessage);
       console.error('Error en update measure:', err);
       return { success: false, error: errorMessage };
@@ -138,7 +138,7 @@ export const useMeasures = () => {
 
       return { success: true };
     } catch (err) {
-      const errorMessage = err.response?.data?.error || err.message || 'Error al eliminar medida';
+      const errorMessage = err.response?.data?.error || err.message || 'Error al eliminar tipo de corte';
       setError(errorMessage);
       console.error('Error en remove measure:', err);
       return { success: false, error: errorMessage };

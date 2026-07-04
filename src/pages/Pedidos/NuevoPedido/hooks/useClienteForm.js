@@ -34,7 +34,9 @@ export const useClienteForm = ({ user, isRole } = {}) => {
           // - SUPERADMIN sin sedeIdActiva: ve todos
           // - Admin/Coordinador: su sedeId asignado
           const sedeId = getSedeIdParaFiltro()
-          const params = { pageSize: 500 }
+          // pageSize: 0 => sin límite (el backend recorta cualquier valor > 100).
+          // Así se cargan TODOS los clientes registrados, no solo los primeros 100.
+          const params = { pageSize: 0 }
           if (sedeId) {
             params.branchId = sedeId
           }

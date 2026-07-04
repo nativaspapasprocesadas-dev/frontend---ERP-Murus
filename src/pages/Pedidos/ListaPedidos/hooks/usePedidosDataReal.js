@@ -11,7 +11,22 @@ import { ROLES } from '@utils/constants'
  * IMPORTANTE: Este hook ahora escucha sedeIdActiva del store global
  * para filtrar pedidos cuando el SUPERADMINISTRADOR cambia de sede
  */
-export const usePedidosDataReal = ({ user, isRole, filtroEstado }) => {
+// Normaliza texto para búsqueda: minúsculas, sin tildes y sin espacios sobrantes.
+// Se descompone con NFD y se descartan los signos diacríticos combinantes (U+0300–U+036F).
+const normalizarTexto = (texto = '') =>
+  texto
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .split('')
+    .filter((ch) => {
+      const code = ch.charCodeAt(0)
+      return code < 0x300 || code > 0x36f
+    })
+    .join('')
+    .trim()
+
+export const usePedidosDataReal = ({ user, isRole, filtroEstado, busqueda = '' }) => {
   const [pedidos, setPedidos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -61,25 +76,34 @@ export const usePedidosDataReal = ({ user, isRole, filtroEstado }) => {
     return [...pedidos].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   }, [pedidos])
 
-  // Resetear a página 1 cuando cambian los datos o filtros
+  // Filtro de búsqueda por nombre de cliente (en vivo, conforme se escribe)
+  const pedidosBuscados = useMemo(() => {
+    const termino = normalizarTexto(busqueda)
+    if (!termino) return pedidosOrdenados
+    return pedidosOrdenados.filter((p) =>
+      normalizarTexto(p.nombreCliente || '').includes(termino)
+    )
+  }, [pedidosOrdenados, busqueda])
+
+  // Resetear a página 1 cuando cambian los datos o filtros (incluida la búsqueda)
   useEffect(() => {
     setCurrentPage(1)
-  }, [pedidos, filtroEstado])
+  }, [pedidos, filtroEstado, busqueda])
 
   // Paginación client-side
-  const totalPages = Math.ceil(pedidosOrdenados.length / pageSize)
+  const totalPages = Math.ceil(pedidosBuscados.length / pageSize)
 
   const pedidosFiltrados = useMemo(() => {
     const start = (currentPage - 1) * pageSize
-    return pedidosOrdenados.slice(start, start + pageSize)
-  }, [pedidosOrdenados, currentPage, pageSize])
+    return pedidosBuscados.slice(start, start + pageSize)
+  }, [pedidosBuscados, currentPage, pageSize])
 
   const pagination = useMemo(() => ({
     page: currentPage,
     pageSize,
-    total: pedidosOrdenados.length,
+    total: pedidosBuscados.length,
     totalPages
-  }), [currentPage, pageSize, pedidosOrdenados.length, totalPages])
+  }), [currentPage, pageSize, pedidosBuscados.length, totalPages])
 
   const goToPage = useCallback((page) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page)

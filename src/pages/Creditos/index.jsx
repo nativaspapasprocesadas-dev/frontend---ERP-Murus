@@ -43,6 +43,9 @@ const Creditos = () => {
   // Estado para cliente seleccionado en vista admin
   const [clienteSeleccionadoId, setClienteSeleccionadoId] = useState(null)
 
+  // Estado para exportación a Excel
+  const [exportando, setExportando] = useState(false)
+
   // Estado para modal de detalle de pedido
   const [modalPedidoAbierto, setModalPedidoAbierto] = useState(false)
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null)
@@ -60,6 +63,24 @@ const Creditos = () => {
     } catch (error) {
       console.error('Error enviando recordatorio:', error)
       showToast(error.message || 'No se pudo enviar el recordatorio de pago', 'error')
+    }
+  }
+
+  // Handler para exportar créditos de clientes a Excel
+  const handleExportarExcel = async () => {
+    try {
+      setExportando(true)
+      const branchId = canViewAllSedes() ? null : sedeIdActiva
+      const { filename } = await CreditService.exportDebtors({
+        branchId,
+        search: busquedaActiva || undefined
+      })
+      showToast(`Exportado correctamente: ${filename}`, 'success')
+    } catch (error) {
+      console.error('Error exportando créditos:', error)
+      showToast(error.message || 'No se pudo exportar a Excel', 'error')
+    } finally {
+      setExportando(false)
     }
   }
 
@@ -647,12 +668,21 @@ const Creditos = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Créditos</h1>
-          <SedeIndicator size="sm" />
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-gray-900">Gestión de Créditos</h1>
+            <SedeIndicator size="sm" />
+          </div>
+          <p className="text-gray-600 mt-1">Estados de cuenta de clientes</p>
         </div>
-        <p className="text-gray-600 mt-1">Estados de cuenta de clientes</p>
+        <Button
+          variant="success"
+          onClick={handleExportarExcel}
+          disabled={exportando || estadisticas.totalConDeuda === 0}
+        >
+          {exportando ? 'Exportando...' : '📊 Exportar a Excel'}
+        </Button>
       </div>
 
       {/* Estadísticas */}

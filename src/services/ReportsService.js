@@ -69,6 +69,23 @@ export const getCustomersReport = async (params = {}) => {
 }
 
 /**
+ * API-065b: GET /api/v1/reports/customers/consumption
+ * Detallado de consumo por cliente y por día (importe total y nº de pedidos)
+ * @param {Object} params - Filtros
+ * @param {string} params.dateFrom - Fecha inicio (OBLIGATORIO)
+ * @param {string} params.dateTo - Fecha fin (OBLIGATORIO)
+ * @param {number} params.branchId - ID de sede (opcional)
+ * @returns {Promise<Object>} Consumo por cliente y día
+ */
+export const getCustomerConsumption = async (params) => {
+  if (!params.dateFrom || !params.dateTo) {
+    throw new Error('dateFrom y dateTo son obligatorios')
+  }
+  const response = await apiClient.get('/reports/customers/consumption', { params })
+  return response.data
+}
+
+/**
  * API-066: GET /api/v1/reports/customers/export
  * Exportar datos de clientes
  * @param {Object} params - Filtros opcionales
@@ -88,5 +105,6 @@ export default {
   getRoutesReport,
   getKilosBySpeciesReport,
   getCustomersReport,
+  getCustomerConsumption,
   exportCustomersData
 }

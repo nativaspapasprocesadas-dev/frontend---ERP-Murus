@@ -199,13 +199,13 @@ const DetalleProducto = () => {
 
               {/* Medida */}
               <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                <span className="text-gray-600 font-medium">Medida</span>
+                <span className="text-gray-600 font-medium">Tipo de corte</span>
                 <Badge variant="info">{producto.medida?.nombre}</Badge>
               </div>
 
               {/* Presentación */}
               <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                <span className="text-gray-600 font-medium">Presentación</span>
+                <span className="text-gray-600 font-medium">Empaquetado</span>
                 <span className="text-gray-900 font-bold text-lg">
                   {producto.presentacion?.kilos} kg
                 </span>

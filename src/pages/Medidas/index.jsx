@@ -83,20 +83,20 @@ const Medidas = () => {
     }
 
     if (result.success) {
-      toastSuccess(editingItem ? 'Medida actualizada correctamente' : 'Medida creada correctamente')
+      toastSuccess(editingItem ? 'Tipo de corte actualizado correctamente' : 'Tipo de corte creado correctamente')
       handleCloseModal()
     } else {
-      toastError(result.error || 'Error al guardar la medida')
+      toastError(result.error || 'Error al guardar el tipo de corte')
     }
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Estás seguro de eliminar esta medida?')) {
+    if (window.confirm('¿Estás seguro de eliminar este tipo de corte?')) {
       const result = await remove(id)
       if (result.success) {
-        toastSuccess('Medida eliminada correctamente')
+        toastSuccess('Tipo de corte eliminado correctamente')
       } else {
-        toastError(result.error || 'Error al eliminar la medida')
+        toastError(result.error || 'Error al eliminar el tipo de corte')
       }
     }
   }
@@ -104,7 +104,7 @@ const Medidas = () => {
   const handleToggleStatus = async (id, currentStatus) => {
     const result = await toggleStatus(id, currentStatus)
     if (result.success) {
-      toastSuccess(currentStatus ? 'Medida desactivada' : 'Medida activada')
+      toastSuccess(currentStatus ? 'Tipo de corte desactivado' : 'Tipo de corte activado')
     } else {
       toastError(result.error || 'Error al cambiar el estado')
     }
@@ -151,7 +151,7 @@ const Medidas = () => {
             size="sm"
             variant={row.activa ? 'warning' : 'success'}
             onClick={() => handleToggleStatus(row.id, row.activa)}
-            title={row.activa ? 'Desactivar medida' : 'Activar medida'}
+            title={row.activa ? 'Desactivar tipo de corte' : 'Activar tipo de corte'}
           >
             {row.activa ? 'Desactivar' : 'Activar'}
           </Button>
@@ -170,10 +170,10 @@ const Medidas = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Medidas de Corte</h1>
-          <p className="text-gray-600 mt-1">Gestiona las medidas de corte disponibles</p>
+          <h1 className="text-3xl font-bold text-gray-900">Tipos de corte</h1>
+          <p className="text-gray-600 mt-1">Gestiona los tipos de corte disponibles</p>
         </div>
-        <Button onClick={() => handleOpenModal()}>+ Nueva Medida</Button>
+        <Button onClick={() => handleOpenModal()}>+ Nuevo Tipo de corte</Button>
       </div>
 
       <Card>
@@ -183,7 +183,7 @@ const Medidas = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={editingItem ? 'Editar Medida' : 'Nueva Medida'}
+        title={editingItem ? 'Editar Tipo de corte' : 'Nuevo Tipo de corte'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input

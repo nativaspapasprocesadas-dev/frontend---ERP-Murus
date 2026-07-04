@@ -57,6 +57,17 @@ export const useModalExportacion = ({ getPedidosDeRuta, getChoferById, colores, 
     }))
   }
 
+  // Marcar o desmarcar el monto en TODOS los pedidos de la ruta
+  const setTodosMonto = (valor) => {
+    setPedidosConMonto(() => {
+      const nuevo = {}
+      pedidosRuta.forEach(p => {
+        nuevo[p.id] = valor
+      })
+      return nuevo
+    })
+  }
+
   const exportarRepartidor = () => {
     if (!rutaSeleccionada) return
 
@@ -112,6 +123,7 @@ export const useModalExportacion = ({ getPedidosDeRuta, getChoferById, colores, 
     openModal,
     closeModal,
     toggleMostrarMonto,
+    setTodosMonto,
     exportarRepartidor,
     exportarCompleto
   }

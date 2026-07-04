@@ -32,7 +32,7 @@ export const usePresentations = () => {
       setPresentations(mapped);
       return { success: true, data: mapped };
     } catch (err) {
-      const errorMessage = err.response?.data?.error || err.message || 'Error al cargar presentaciones';
+      const errorMessage = err.response?.data?.error || err.message || 'Error al cargar empaquetados';
       setError(errorMessage);
       console.error('Error en fetchPresentations:', err);
       return { success: false, error: errorMessage };
@@ -61,11 +61,11 @@ export const usePresentations = () => {
       await fetchPresentations();
       return {
         success: true,
-        message: 'Presentación creada exitosamente',
+        message: 'Empaquetado creado exitosamente',
         data: response.data
       };
     } catch (err) {
-      const errorMessage = err.response?.data?.error || err.message || 'Error al crear presentación';
+      const errorMessage = err.response?.data?.error || err.message || 'Error al crear empaquetado';
       setError(errorMessage);
       console.error('Error en createPresentation:', err);
       return { success: false, error: errorMessage };
@@ -90,11 +90,11 @@ export const usePresentations = () => {
       await fetchPresentations();
       return {
         success: true,
-        message: 'Presentación actualizada exitosamente',
+        message: 'Empaquetado actualizado exitosamente',
         data: response.data
       };
     } catch (err) {
-      const errorMessage = err.response?.data?.error || err.message || 'Error al actualizar presentación';
+      const errorMessage = err.response?.data?.error || err.message || 'Error al actualizar empaquetado';
       setError(errorMessage);
       console.error('Error en updatePresentation:', err);
       return { success: false, error: errorMessage };
@@ -118,10 +118,10 @@ export const usePresentations = () => {
       await fetchPresentations();
       return {
         success: true,
-        message: response.data.message || 'Presentación eliminada exitosamente'
+        message: response.data.message || 'Empaquetado eliminado exitosamente'
       };
     } catch (err) {
-      const errorMessage = err.response?.data?.error || err.message || 'Error al eliminar presentación';
+      const errorMessage = err.response?.data?.error || err.message || 'Error al eliminar empaquetado';
       setError(errorMessage);
       console.error('Error en deletePresentation:', err);
       return { success: false, error: errorMessage };
@@ -146,7 +146,7 @@ export const usePresentations = () => {
       await fetchPresentations();
       return {
         success: true,
-        message: currentStatus ? 'Presentación desactivada' : 'Presentación activada'
+        message: currentStatus ? 'Empaquetado desactivado' : 'Empaquetado activado'
       };
     } catch (err) {
       const errorMessage = err.response?.data?.error || err.message || 'Error al cambiar estado';

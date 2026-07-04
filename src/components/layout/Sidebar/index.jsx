@@ -26,8 +26,8 @@ const Sidebar = ({ isOpen, onClose }) => {
       roles: [ROLES.SUPERADMINISTRADOR, ROLES.ADMINISTRADOR],
       submenu: [
         { label: 'Especies', path: '/especies' },
-        { label: 'Medidas', path: '/medidas' },
-        { label: 'Presentaciones', path: '/presentaciones' },
+        { label: 'Tipos de corte', path: '/medidas' },
+        { label: 'Empaquetados', path: '/presentaciones' },
         { label: 'Productos', path: '/productos' }
       ]
     },

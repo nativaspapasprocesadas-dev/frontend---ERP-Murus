@@ -33,7 +33,7 @@ const CartItemEditor = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Medida</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Tipo de corte</label>
               <select
                 value={productoEditando.medidaId}
                 onChange={(e) => setProductoEditando({
@@ -44,7 +44,7 @@ const CartItemEditor = ({
                 disabled={!productoEditando.especieId}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100"
               >
-                <option value="">Selecciona medida</option>
+                <option value="">Selecciona tipo de corte</option>
                 {medidasOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
@@ -52,7 +52,7 @@ const CartItemEditor = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Tipo de corte (Kg por bolsa)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Empaquetado (Kg por bolsa)</label>
               <select
                 value={productoEditando.presentacionId}
                 onChange={(e) => setProductoEditando({
@@ -62,7 +62,7 @@ const CartItemEditor = ({
                 disabled={!productoEditando.medidaId}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100"
               >
-                <option value="">Selecciona peso</option>
+                <option value="">Selecciona empaquetado</option>
                 {presentacionesOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}

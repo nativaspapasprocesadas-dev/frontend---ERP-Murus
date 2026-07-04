@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import OrdersService, { getOrderById } from '@services/OrdersService'
 import { PedidoEditService } from '@services/PedidoEditService'
 
@@ -14,6 +14,8 @@ export const useModalEditarPedidoReal = ({ pedidosExpandidos, refreshPedidos, sh
     detallesEditados: []
   })
   const [loading, setLoading] = useState(false)
+  // Contador para IDs temporales de productos recién agregados (aún sin ID de BD)
+  const tempIdRef = useRef(0)
 
   const openModal = async (pedidoId) => {
     const pedidoBasico = pedidosExpandidos.find(p => p.id === pedidoId)
@@ -90,6 +92,40 @@ export const useModalEditarPedidoReal = ({ pedidosExpandidos, refreshPedidos, sh
     }))
   }
 
+  // Agregar un producto nuevo al pedido en edición.
+  // Recibe el mismo payload que ProductForm entrega en NuevoPedido.
+  const handleAgregarProducto = (productoSeleccionado, cantidad, subtotal) => {
+    if (!productoSeleccionado || !cantidad || cantidad < 1) {
+      showToast('Selecciona un producto y una cantidad válida', 'error')
+      return false
+    }
+
+    const kilosPorBolsa = productoSeleccionado.presentacion?.kilos || 0
+    const precioKg = productoSeleccionado.precioKg || 0
+    const tempId = `nuevo-${++tempIdRef.current}`
+
+    setModalEditar(prev => ({
+      ...prev,
+      detallesEditados: [
+        ...prev.detallesEditados,
+        {
+          id: tempId,            // ID temporal solo para la UI
+          esNuevo: true,         // marca que debe insertarse en backend (no tiene ID de BD)
+          productoId: productoSeleccionado.id,
+          nombreProducto: productoSeleccionado.nombreCompleto,
+          cantidad: parseInt(cantidad),
+          cantidadOriginal: 0,
+          kilosPorBolsa,
+          precioUnitario: kilosPorBolsa * precioKg,
+          precioKg,
+          fotoUrl: productoSeleccionado.fotoUrl,
+          subtotal
+        }
+      ]
+    }))
+    return true
+  }
+
   const confirmarEdicion = async () => {
     const { pedidoId, detallesEditados, pedido } = modalEditar
 
@@ -110,22 +146,33 @@ export const useModalEditarPedidoReal = ({ pedidosExpandidos, refreshPedidos, sh
       setLoading(true)
 
       // Preparar items para API-010
-      // La API espera: items[].id, items[].quantity, items[].deleted
+      // La API espera:
+      //   - item existente editado:  { id, quantity, deleted:false }
+      //   - item nuevo a insertar:   { productId, quantity, deleted:false }
+      //   - item eliminado:          { id, deleted:true }
       const items = []
 
-      // Marcar items editados o sin cambios
+      // Items existentes y nuevos
       detallesEditados.forEach(detalle => {
-        items.push({
-          id: detalle.id,
-          quantity: detalle.cantidad,
-          deleted: false
-        })
+        if (detalle.esNuevo) {
+          items.push({
+            productId: detalle.productoId,
+            quantity: detalle.cantidad,
+            deleted: false
+          })
+        } else {
+          items.push({
+            id: detalle.id,
+            quantity: detalle.cantidad,
+            deleted: false
+          })
+        }
       })
 
-      // Marcar items eliminados
+      // Marcar items eliminados (solo los que tenían ID de BD y ya no están en la lista)
       const detallesOriginales = pedido.detalles || pedido.detallesOriginales || []
       const detallesEliminados = detallesOriginales.filter(
-        original => !detallesEditados.find(editado => editado.id === original.id)
+        original => !detallesEditados.find(editado => !editado.esNuevo && editado.id === original.id)
       )
       detallesEliminados.forEach(detalle => {
         items.push({
@@ -170,6 +217,7 @@ export const useModalEditarPedidoReal = ({ pedidosExpandidos, refreshPedidos, sh
     closeModal,
     handleChangeCantidad,
     handleEliminarDetalle,
+    handleAgregarProducto,
     confirmarEdicion,
     loading
   }

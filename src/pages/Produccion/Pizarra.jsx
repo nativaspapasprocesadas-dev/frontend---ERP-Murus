@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react'
+import React, { useMemo, useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { parseISO } from 'date-fns'
 import { Card, Button, SedeIndicator } from '@components/common'
 import ComentariosSection from '@components/common/ComentariosSection'
@@ -22,6 +22,12 @@ const PizarraProduccion = () => {
   // Estado y ref para pantalla completa
   const [isFullscreen, setIsFullscreen] = useState(false)
   const containerRef = useRef(null)
+
+  // Auto-ajuste de las tablas a la pantalla (sin scroll)
+  const fitAreaRef = useRef(null)   // contenedor del espacio disponible
+  const tablesRef = useRef(null)    // bloque de tablas en su tamaño natural
+  const [scale, setScale] = useState(1)
+  const [fitHeight, setFitHeight] = useState(null)
 
   // Manejar cambios de fullscreen (incluyendo ESC)
   useEffect(() => {
@@ -179,6 +185,50 @@ const PizarraProduccion = () => {
     return { tablasPrincipales: principales, tablasSecundarias: secundarias }
   }, [pizarra, rutasActivasIds])
 
+  // Auto-ajuste: escala el bloque de tablas para que quepa completo en la pantalla
+  // sin necesidad de scroll. Se usa transform: scale() para preservar EXACTAMENTE
+  // el orden, formato y limpieza del diseño (solo se reduce/aumenta de forma uniforme).
+  useLayoutEffect(() => {
+    const compute = () => {
+      const area = fitAreaRef.current
+      const tables = tablesRef.current
+      if (!area || !tables) return
+
+      // Dimensiones naturales del contenido (no afectadas por el transform)
+      const natW = tables.scrollWidth
+      const natH = tables.scrollHeight
+      if (!natW || !natH) return
+
+      const rect = area.getBoundingClientRect()
+      const availW = area.clientWidth || (window.innerWidth - rect.left - 8)
+      // Alto disponible = desde el inicio de las tablas hasta el borde inferior de la
+      // pantalla. Así las tablas caben sin scroll tanto en vista normal como en
+      // pantalla completa. En vista normal no se agranda (maxScale = 1) para no
+      // alterar el diseño; en pantalla completa se permite agrandar para llenar el monitor.
+      const availH = window.innerHeight - rect.top - 8
+      const maxScale = isFullscreen ? 3 : 1
+
+      const next = Math.min(availW / natW, availH / natH, maxScale)
+      const clamped = Math.max(0.2, next)
+
+      setScale(clamped)
+      setFitHeight(natH * clamped)
+    }
+
+    compute()
+    const raf = requestAnimationFrame(compute)
+    const ro = new ResizeObserver(compute)
+    if (fitAreaRef.current) ro.observe(fitAreaRef.current)
+    if (tablesRef.current) ro.observe(tablesRef.current)
+    window.addEventListener('resize', compute)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      ro.disconnect()
+      window.removeEventListener('resize', compute)
+    }
+  }, [isFullscreen, pizarra, rutasActivasIds, loading, error])
+
   // Estado de carga
   if (loading) {
     return (
@@ -244,9 +294,10 @@ const PizarraProduccion = () => {
     )
   }
 
-  // Clases condicionales para pantalla completa
+  // Clases condicionales para pantalla completa.
+  // overflow-hidden: el contenido se ajusta por escala, nunca se hace scroll.
   const fullscreenClasses = isFullscreen
-    ? 'fixed inset-0 z-50 bg-white overflow-auto p-2 pt-3'
+    ? 'fixed inset-0 z-50 bg-white overflow-hidden p-2 pt-3 flex flex-col'
     : ''
 
   // Componente para renderizar una tabla de especie
@@ -386,7 +437,7 @@ const PizarraProduccion = () => {
       className={`${isFullscreen ? 'space-y-3' : 'space-y-6'} ${fullscreenClasses}`}
     >
       {/* Header con botón de pantalla completa */}
-      <div className={`flex items-start gap-4 ${isFullscreen ? 'justify-end' : 'justify-between'}`}>
+      <div className={`flex items-start gap-4 flex-shrink-0 ${isFullscreen ? 'justify-end' : 'justify-between'}`}>
         {!isFullscreen && (
           <div>
             <div className="flex items-center gap-3">
@@ -454,23 +505,36 @@ const PizarraProduccion = () => {
         </div>
       )}
 
-      {/* Primera fila: Tabla(s) principal(es) - Única */}
-      {tablasPrincipales.length > 0 && (
-        <div className="flex flex-wrap gap-4 items-start">
-          {tablasPrincipales.map(({ especie, especieData }) => (
-            renderTablaEspecie(especie, especieData)
-          ))}
-        </div>
-      )}
+      {/* Área auto-ajustable: el bloque de tablas se escala para caber en pantalla sin scroll */}
+      <div
+        ref={fitAreaRef}
+        className="w-full overflow-hidden flex-shrink-0"
+        style={fitHeight != null ? { height: `${fitHeight}px` } : undefined}
+      >
+        <div
+          ref={tablesRef}
+          className="w-max space-y-4"
+          style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
+        >
+          {/* Primera fila: Tabla(s) principal(es) - Única */}
+          {tablasPrincipales.length > 0 && (
+            <div className="flex flex-wrap gap-4 items-start">
+              {tablasPrincipales.map(({ especie, especieData }) => (
+                renderTablaEspecie(especie, especieData)
+              ))}
+            </div>
+          )}
 
-      {/* Segunda fila: Tablas secundarias - Amarilla, Blanca, etc. */}
-      {tablasSecundarias.length > 0 && (
-        <div className="flex flex-wrap gap-4 items-start">
-          {tablasSecundarias.map(({ especie, especieData }) => (
-            renderTablaEspecie(especie, especieData)
-          ))}
+          {/* Segunda fila: Tablas secundarias - Amarilla, Blanca, etc. */}
+          {tablasSecundarias.length > 0 && (
+            <div className="flex flex-wrap gap-4 items-start">
+              {tablasSecundarias.map(({ especie, especieData }) => (
+                renderTablaEspecie(especie, especieData)
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Sección de Comentarios para Administrador y Producción */}
       <ComentariosSection

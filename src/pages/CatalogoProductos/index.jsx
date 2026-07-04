@@ -103,11 +103,11 @@ const CatalogoProductos = () => {
 
             {/* Filtro por Medida */}
             <Select
-              label="Medida"
+              label="Tipo de corte"
               value={filtros.medidaId}
               onChange={(e) => handleFiltroChange('medidaId', e.target.value)}
               options={medidasOptions}
-              placeholder="Todas las medidas"
+              placeholder="Todos los tipos de corte"
             />
           </div>
 

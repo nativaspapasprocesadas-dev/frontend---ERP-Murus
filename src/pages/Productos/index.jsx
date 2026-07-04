@@ -124,8 +124,8 @@ const Productos = () => {
   const validate = () => {
     const errors = {}
     if (!formData.especieId) errors.especieId = 'La especie es requerida'
-    if (!formData.medidaId) errors.medidaId = 'La medida es requerida'
-    if (!formData.presentacionId) errors.presentacionId = 'La presentación es requerida'
+    if (!formData.medidaId) errors.medidaId = 'El tipo de corte es requerido'
+    if (!formData.presentacionId) errors.presentacionId = 'El empaquetado es requerido'
     if (!formData.precioBaseKg || formData.precioBaseKg <= 0) {
       errors.precioBaseKg = 'El precio debe ser mayor a 0'
     }
@@ -209,7 +209,7 @@ const Productos = () => {
   ], [especies])
 
   const filterMedidasOptions = useMemo(() => [
-    { value: '', label: 'Todas las medidas' },
+    { value: '', label: 'Todos los tipos de corte' },
     ...medidas.filter(m => m.isActive !== false).map(m => ({
       value: m.id,
       label: m.name || m.nombre
@@ -217,7 +217,7 @@ const Productos = () => {
   ], [medidas])
 
   const filterPresentacionesOptions = useMemo(() => [
-    { value: '', label: 'Todas las presentaciones' },
+    { value: '', label: 'Todos los empaquetados' },
     ...presentaciones.filter(p => p.isActive !== false).map(p => ({
       value: p.id,
       label: p.name || p.nombre || '-'
@@ -287,12 +287,12 @@ const Productos = () => {
       render: (especie) => especie?.nombre || '-'
     },
     {
-      title: 'Medida',
+      title: 'Tipo de corte',
       key: 'medida',
       render: (medida) => <Badge variant="info">{medida?.nombre || '-'}</Badge>
     },
     {
-      title: 'Presentación',
+      title: 'Empaquetado',
       key: 'presentacion',
       render: (presentacion) => <span className="font-semibold">{presentacion?.nombre || '-'}</span>
     },
@@ -360,7 +360,7 @@ const Productos = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Productos</h1>
           <p className="text-gray-600 mt-1">
-            Gestiona los productos (Especie + Medida + Presentación)
+            Gestiona los productos (Especie + Tipo de corte + Empaquetado)
           </p>
           <div className="flex gap-4 mt-2 text-sm">
             <span className="text-gray-600">
@@ -411,7 +411,7 @@ const Productos = () => {
 
             {/* Filtro por Medida */}
             <div className="w-36">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Medida</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Tipo de corte</label>
               <select
                 name="measureId"
                 value={filters.measureId}
@@ -426,7 +426,7 @@ const Productos = () => {
 
             {/* Filtro por Presentación */}
             <div className="w-44">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Presentación</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Empaquetado</label>
               <select
                 name="presentationId"
                 value={filters.presentationId}
@@ -644,7 +644,7 @@ const Productos = () => {
             />
 
             <Select
-              label="Medida"
+              label="Tipo de corte"
               name="medidaId"
               value={formData.medidaId}
               onChange={handleChange}
@@ -654,7 +654,7 @@ const Productos = () => {
             />
 
             <Select
-              label="Presentación"
+              label="Empaquetado"
               name="presentacionId"
               value={formData.presentacionId}
               onChange={handleChange}

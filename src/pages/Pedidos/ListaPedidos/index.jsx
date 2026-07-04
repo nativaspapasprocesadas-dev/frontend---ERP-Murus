@@ -197,6 +197,7 @@ const ListaPedidos = () => {
         detallesEditados={modalEditar.modalEditar.detallesEditados}
         onChangeCantidad={modalEditar.handleChangeCantidad}
         onEliminarDetalle={modalEditar.handleEliminarDetalle}
+        onAgregarProducto={modalEditar.handleAgregarProducto}
         onConfirmar={modalEditar.confirmarEdicion}
       />
 

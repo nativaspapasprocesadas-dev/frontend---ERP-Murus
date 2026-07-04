@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Select } from '@components/common'
+import { Card, ComboBox } from '@components/common'
 
 const ClientSelector = ({
   esClienteNuevo,
@@ -41,12 +41,12 @@ const ClientSelector = ({
       {/* Opción A: Seleccionar Cliente Existente */}
       {!esClienteNuevo && (
         <div>
-          <Select
+          <ComboBox
             label="Cliente"
             value={clienteSeleccionadoId}
             onChange={(e) => setClienteSeleccionadoId(e.target.value)}
             options={clientesOptions}
-            placeholder="Selecciona un cliente"
+            placeholder="Busca o selecciona un cliente"
             className="max-w-md"
           />
           {!clienteSeleccionadoId && (

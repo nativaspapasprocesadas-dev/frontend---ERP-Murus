@@ -12,11 +12,15 @@ const ModalExportacion = ({
   colores,
   labels,
   onToggleMonto,
+  onSetTodosMonto,
   onExportarRepartidor,
   onExportarCompleto,
   onImprimirTicket
 }) => {
   if (!ruta) return null
+
+  // ¿Están todos los pedidos marcados con monto?
+  const todosSeleccionados = pedidos.length > 0 && pedidos.every(p => pedidosConMonto[p.id])
 
   return (
     <Modal
@@ -67,7 +71,18 @@ const ModalExportacion = ({
 
         {/* Lista de pedidos con checkboxes */}
         <div className="space-y-3 max-h-96 overflow-y-auto">
-          <h4 className="font-semibold text-gray-900">Vista Previa de Pedidos:</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="font-semibold text-gray-900">Vista Previa de Pedidos:</h4>
+            {pedidos.length > 0 && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => onSetTodosMonto(!todosSeleccionados)}
+              >
+                {todosSeleccionados ? '☐ Quitar selección a todos' : '☑ Seleccionar todos'}
+              </Button>
+            )}
+          </div>
 
           {pedidos.map((pedido, index) => (
             <div key={pedido.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">

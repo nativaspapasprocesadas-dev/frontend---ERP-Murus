@@ -89,32 +89,32 @@ const Presentaciones = () => {
     if (editingItem) {
       const result = await updatePresentation(editingItem.id, payload)
       if (result.success) {
-        toastSuccess(result.message || 'Presentación actualizada exitosamente')
+        toastSuccess(result.message || 'Empaquetado actualizado exitosamente')
         handleCloseModal()
       } else {
-        toastError(result.error || 'Error al actualizar presentación')
+        toastError(result.error || 'Error al actualizar empaquetado')
       }
     } else {
       const result = await createPresentation(payload)
       if (result.success) {
-        toastSuccess(result.message || 'Presentación creada exitosamente')
+        toastSuccess(result.message || 'Empaquetado creado exitosamente')
         handleCloseModal()
       } else {
-        toastError(result.error || 'Error al crear presentación')
+        toastError(result.error || 'Error al crear empaquetado')
       }
     }
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Estás seguro de eliminar esta presentación?')) {
+    if (window.confirm('¿Estás seguro de eliminar este empaquetado?')) {
       setDeleting(true)
       const result = await deletePresentation(id)
       setDeleting(false)
 
       if (result.success) {
-        toastSuccess(result.message || 'Presentación eliminada exitosamente')
+        toastSuccess(result.message || 'Empaquetado eliminado exitosamente')
       } else {
-        toastError(result.error || 'Error al eliminar presentación')
+        toastError(result.error || 'Error al eliminar empaquetado')
       }
     }
   }
@@ -122,7 +122,7 @@ const Presentaciones = () => {
   const handleToggleStatus = async (id, currentStatus) => {
     const result = await toggleStatus(id, currentStatus)
     if (result.success) {
-      toastSuccess(result.message || (currentStatus ? 'Presentación desactivada' : 'Presentación activada'))
+      toastSuccess(result.message || (currentStatus ? 'Empaquetado desactivado' : 'Empaquetado activado'))
     } else {
       toastError(result.error || 'Error al cambiar el estado')
     }
@@ -173,7 +173,7 @@ const Presentaciones = () => {
             size="sm"
             variant={row.isActive ? 'warning' : 'success'}
             onClick={() => handleToggleStatus(row.id, row.isActive)}
-            title={row.isActive ? 'Desactivar presentación' : 'Activar presentación'}
+            title={row.isActive ? 'Desactivar empaquetado' : 'Activar empaquetado'}
             disabled={deleting}
           >
             {row.isActive ? 'Desactivar' : 'Activar'}
@@ -194,11 +194,11 @@ const Presentaciones = () => {
       {/* ELM-109: Vista Gestion de Presentaciones */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Presentaciones</h1>
-          <p className="text-gray-600 mt-1">Gestiona las presentaciones de productos</p>
+          <h1 className="text-3xl font-bold text-gray-900">Empaquetados</h1>
+          <p className="text-gray-600 mt-1">Gestiona los empaquetados de productos</p>
         </div>
         <Button onClick={() => handleOpenModal()} disabled={loading || deleting}>
-          + Nueva Presentación
+          + Nuevo Empaquetado
         </Button>
       </div>
 
@@ -208,7 +208,7 @@ const Presentaciones = () => {
           columns={columns}
           data={presentations.sort((a, b) => a.name.localeCompare(b.name))}
           loading={loading}
-          emptyMessage="No hay presentaciones registradas"
+          emptyMessage="No hay empaquetados registrados"
         />
       </Card>
 
@@ -216,7 +216,7 @@ const Presentaciones = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={editingItem ? 'Editar Presentación' : 'Nueva Presentación'}
+        title={editingItem ? 'Editar Empaquetado' : 'Nuevo Empaquetado'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
@@ -240,7 +240,7 @@ const Presentaciones = () => {
               onChange={handleChange}
               rows={3}
               className="input"
-              placeholder="Descripción opcional de la presentación"
+              placeholder="Descripción opcional del empaquetado"
             />
           </div>
 

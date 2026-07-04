@@ -2,6 +2,7 @@ import React from 'react'
 import { Modal, Button, Badge } from '@components/common'
 import { formatearMoneda, formatearKilos } from '@utils/formatters'
 import { ESTADOS_PEDIDO_LABELS, ESTADOS_PEDIDO_COLORS } from '@utils/constants'
+import ProductForm from '../../../NuevoPedido/components/ProductForm'
 
 const ModalEditarPedido = ({
   isOpen,
@@ -10,6 +11,7 @@ const ModalEditarPedido = ({
   detallesEditados,
   onChangeCantidad,
   onEliminarDetalle,
+  onAgregarProducto,
   onConfirmar
 }) => {
   if (!pedido) return null
@@ -59,7 +61,12 @@ const ModalEditarPedido = ({
               <div key={detalle.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">{detalle.nombreProducto}</p>
+                    <p className="font-medium text-gray-900">
+                      {detalle.nombreProducto}
+                      {detalle.esNuevo && (
+                        <Badge variant="success" className="ml-2">Nuevo</Badge>
+                      )}
+                    </p>
                     <p className="text-sm text-gray-600">
                       {detalle.kilosPorBolsa} kg/bolsa • {formatearMoneda(detalle.precioKg)}/kg
                     </p>
@@ -91,7 +98,7 @@ const ModalEditarPedido = ({
                     </Button>
                   </div>
                 </div>
-                {detalle.cantidad !== detalle.cantidadOriginal && (
+                {!detalle.esNuevo && detalle.cantidad !== detalle.cantidadOriginal && (
                   <div className="mt-2 text-xs text-orange-600">
                     ⚠️ Cantidad original: {detalle.cantidadOriginal} bolsas
                   </div>
@@ -99,6 +106,15 @@ const ModalEditarPedido = ({
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Agregar un producto nuevo al pedido */}
+        <div>
+          <h5 className="font-semibold text-gray-900 mb-3">Agregar Producto</h5>
+          <ProductForm
+            onAdd={onAgregarProducto}
+            cliente={{ id: pedido.customerId }}
+          />
         </div>
 
         {/* Totales actualizados */}

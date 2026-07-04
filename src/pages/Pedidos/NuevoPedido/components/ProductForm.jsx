@@ -45,7 +45,11 @@ const ProductForm = ({ onAdd, cliente }) => {
 
   // Agregar producto al carrito
   const handleAgregar = () => {
-    if (onAdd(productoSeleccionado, productoForm.cantidad, subtotalProducto)) {
+    // Validar cantidad: debe ser un entero mayor a 0 (el campo puede quedar vacío mientras se edita)
+    const cantidad = parseInt(productoForm.cantidad, 10)
+    if (!cantidad || cantidad < 1) return
+
+    if (onAdd(productoSeleccionado, cantidad, subtotalProducto)) {
       // Resetear formulario
       setProductoForm({
         especieId: '',
@@ -78,7 +82,7 @@ const ProductForm = ({ onAdd, cliente }) => {
           placeholder="Selecciona especie"
         />
         <Select
-          label="Unidad/Peso"
+          label="Tipo de corte"
           value={productoForm.medidaId}
           onChange={(e) => setProductoForm({
             ...productoForm,
@@ -86,18 +90,18 @@ const ProductForm = ({ onAdd, cliente }) => {
             presentacionId: ''
           })}
           options={medidasOptions}
-          placeholder="Selecciona unidad"
+          placeholder="Selecciona tipo de corte"
           disabled={!productoForm.especieId}
         />
         <Select
-          label="Tipo de corte"
+          label="Empaquetado"
           value={productoForm.presentacionId}
           onChange={(e) => setProductoForm({
             ...productoForm,
             presentacionId: e.target.value
           })}
           options={presentacionesOptions}
-          placeholder="Tipo de corte"
+          placeholder="Empaquetado"
           disabled={!productoForm.medidaId}
         />
         <div>
@@ -108,17 +112,26 @@ const ProductForm = ({ onAdd, cliente }) => {
             type="number"
             min="1"
             value={productoForm.cantidad}
-            onChange={(e) => setProductoForm({
-              ...productoForm,
-              cantidad: parseInt(e.target.value) || 1
-            })}
+            onChange={(e) => {
+              const val = e.target.value
+              // Permitir dejar el campo vacío mientras se edita (no forzar a 1)
+              if (val === '') {
+                setProductoForm({ ...productoForm, cantidad: '' })
+                return
+              }
+              // Solo aceptar enteros positivos
+              const parsed = parseInt(val, 10)
+              if (!isNaN(parsed) && parsed >= 1) {
+                setProductoForm({ ...productoForm, cantidad: parsed })
+              }
+            }}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
         <div className="flex items-end">
           <Button
             onClick={handleAgregar}
-            disabled={!productoSeleccionado || productoForm.cantidad < 1}
+            disabled={!productoSeleccionado || !productoForm.cantidad || productoForm.cantidad < 1}
             className="w-full"
           >
             + Agregar
@@ -179,7 +192,7 @@ const ProductForm = ({ onAdd, cliente }) => {
               <div>
                 <p className="text-gray-600">Total Kilos</p>
                 <p className="font-semibold">
-                  {(productoSeleccionado.presentacion.kilos * productoForm.cantidad).toFixed(2)} kg
+                  {(productoSeleccionado.presentacion.kilos * (productoForm.cantidad || 0)).toFixed(2)} kg
                 </p>
               </div>
               <div>
