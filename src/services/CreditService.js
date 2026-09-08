@@ -37,12 +37,22 @@ export class CreditService {
    * Exportar a Excel los créditos de los clientes con deuda y su detalle
    * GET /api/v1/credits/debtors/export
    * Descarga un archivo .xlsx
+   *
+   * @param {Object} params
+   * @param {number} [params.branchId] - Filtrar por sede
+   * @param {string} [params.search] - Filtrar por nombre de cliente
+   * @param {number} [params.customerId] - Exportar solo el estado de cuenta de un cliente
+   * @param {string} [params.dateFrom] - Filtrar movimientos desde (YYYY-MM-DD)
+   * @param {string} [params.dateTo] - Filtrar movimientos hasta (YYYY-MM-DD)
    */
   static async exportDebtors(params = {}) {
     try {
       const queryParams = new URLSearchParams()
       if (params.branchId) queryParams.append('branchId', params.branchId)
       if (params.search) queryParams.append('search', params.search)
+      if (params.customerId) queryParams.append('customerId', params.customerId)
+      if (params.dateFrom) queryParams.append('dateFrom', params.dateFrom)
+      if (params.dateTo) queryParams.append('dateTo', params.dateTo)
 
       const response = await api.get(`/credits/debtors/export?${queryParams.toString()}`, {
         responseType: 'blob',
@@ -68,6 +78,55 @@ export class CreditService {
     } catch (error) {
       console.error('Error exportando créditos:', error)
       throw new Error('Error al exportar los créditos a Excel')
+    }
+  }
+
+  /**
+   * Cargos con saldo pendiente de un cliente, del más antiguo al más reciente
+   * GET /api/v1/credits/customers/{customerId}/pending-charges
+   *
+   * Alimenta la selección de cuentas a cancelar en el modal de pago.
+   */
+  static async getPendingCharges(customerId) {
+    try {
+      const response = await api.get(`/credits/customers/${customerId}/pending-charges`)
+      return response.data
+    } catch (error) {
+      console.error('Error obteniendo cargos pendientes:', error)
+      throw new Error(error.response?.data?.error || 'Error al obtener los cargos pendientes')
+    }
+  }
+
+  /**
+   * Registrar un pago (ABONO) de un cliente desde la vista de créditos
+   * POST /api/v1/payments (API-025)
+   *
+   * @param {Object} payload
+   * @param {number} payload.customerId - Cliente que paga
+   * @param {number} payload.amount - Monto abonado
+   * @param {string} payload.paymentMethod - EFECTIVO | TRANSFERENCIA | DEPOSITO | YAPE | PLIN
+   * @param {string} [payload.reference] - Referencia / N° de operación
+   * @param {string} [payload.notes] - Observaciones
+   * @param {string} [payload.signature] - Firma digital en base64
+   * @param {number[]} [payload.chargeIds] - Cargos elegidos para cancelar; si se omite,
+   *        el monto se aplica del cargo más antiguo al más reciente
+   * @returns {Promise<Object>} { id, customerId, amount, creditMovementId, newBalance, appliedCharges }
+   */
+  static async registerPayment({ customerId, amount, paymentMethod, reference, notes, signature, chargeIds }) {
+    try {
+      const response = await api.post('/payments', {
+        customerId,
+        amount,
+        paymentMethod,
+        reference: reference || '',
+        notes: notes || '',
+        signature: signature || null,
+        chargeIds: Array.isArray(chargeIds) && chargeIds.length > 0 ? chargeIds : undefined
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error registrando pago:', error)
+      throw new Error(error.response?.data?.error || 'Error al registrar el pago')
     }
   }
 
